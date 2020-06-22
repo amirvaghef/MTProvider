@@ -1,0 +1,54 @@
+﻿@model IList<MTProvider.Models.MTAccounts>
+
+@{
+    ViewBag.Title = "Accounts";
+}
+
+<h2>Accounts</h2>
+
+<p>
+    @Html.ActionLink("Add New Account", "Create")
+</p>
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <table class="table">
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model[0].UserName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model[0].Volume)
+            </th>
+            <th></th>
+        </tr>
+
+        @for (var i = 0; i < Model.Count; i++)
+        {
+            <tr>
+                <td>
+                    @Html.HiddenFor(item => item[i].UserName)
+                    @Html.HiddenFor(item => item[i].Password)
+                    @Html.DisplayFor(item => item[i].UserName)
+                </td>
+                <td>
+                    @Html.EditorFor(item => item[i].Volume, new { htmlAttributes = new { @type = "number", @class = "form-control" } }) 
+                    @Html.ValidationMessageFor(item => item[i].Volume, "", new { @class = "text-danger" })
+                </td>
+                <td>
+                    @Html.ActionLink("Change Password", "Edit", new { id = Model[i].UserName }) |
+                    @Html.ActionLink("Delete", "Delete", new { id = Model[i].UserName })
+                </td>
+            </tr>
+        }
+
+        <tr>
+            <td colspan="2">
+                <div class="col-md-offset-2 col-md-10">
+                    <input type="submit" value="Save" class="btn btn-default" />
+                </div>
+            </td>
+        </tr>
+
+    </table>
+}

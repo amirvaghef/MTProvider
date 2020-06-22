@@ -1,0 +1,109 @@
+﻿@model IList<MTProvider.Models.SymbolsEnable>
+
+@{
+    ViewBag.Title = "Symbol & Account Access";
+}
+
+<h2>Symbol & Account Access</h2>
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class="form-horizontal">
+        <table class="table table-striped">
+            <tr>
+                <th></th>
+                @foreach (var item in (IEnumerable<MTProvider.Models.MTAccounts>)ViewBag.MTAccounts)
+                {
+                    <th>
+                        @Html.DisplayFor(model => item.UserName)
+                    </th>
+                }
+            </tr>
+
+            @foreach (var itemSymbol in (IEnumerable<MTProvider.Models.MTSymbols>)ViewBag.MTSymbols)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(model => itemSymbol.Name)
+                    </td>
+                    @foreach (var itemAccount in (IEnumerable<MTProvider.Models.MTAccounts>)ViewBag.MTAccounts)
+                    {
+                        for (var i = 0; i < Model.Count; i++)
+                        {
+                            if (Model[i].SymbolName == itemSymbol.Name && Model[i].UserName == itemAccount.UserName)
+                            {
+                                //MTProvider.Models.SymbolsEnable item = Model.Where(a => a.SymbolName == itemSymbol.Name && a.UserName == itemAccount.UserName).SingleOrDefault<MTProvider.Models.SymbolsEnable>();
+                                <td>
+                                    @Html.HiddenFor(item => item[i].SymbolName)
+                                    @Html.HiddenFor(item => item[i].UserName)
+                                    @Html.EditorFor(item => item[i].StatusTri, new { @id = "StatusTri" + itemAccount.UserName + itemSymbol.Name})
+                                </td>
+                            }
+                        }
+                    }
+                </tr>
+            }
+        </table>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Save" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+
+@section scripts
+{
+    <script>
+        $(".tri-state-hidden").each(function () {
+            var isIndeterminate = this.value === "@TriState.Indeterminate";
+            if (isIndeterminate) {
+                var $box = $(".tri-state-box[name='" + this.name + "'][type='checkbox']");
+                $box.prop("indeterminate", true);
+            }
+        });
+
+        // on change, keep synchronized
+        $(".tri-state-box").change(function () {
+            //evt.preventDefault();
+            var newValue = "@TriState.Indeterminate";
+            var $hidden = $(".tri-state-hidden[name='" + this.name + "'][type='hidden']");
+            var $box = $(".tri-state-box[name='" + this.name + "'][type='checkbox']");
+            var val = $hidden[0].value
+            if (val == "@TriState.Indeterminate") {
+                newValue = "@TriState.Checked";
+                $box.prop('checked', true);
+                $box.prop("indeterminate", false);
+            }
+            else if (val == "@TriState.Checked") {
+                newValue = "@TriState.Unchecked";
+                $box.prop('checked', false);
+                $box.prop("indeterminate", false);
+            }
+            else if (val == "@TriState.Unchecked") {
+                newValue = "@TriState.Indeterminate";
+                $box.prop('checked', false);
+                $box.prop("indeterminate", true);
+            }
+
+            @*var newValue = this.indeterminate ? "@TriState.Indeterminate"
+                         : this.checked ? "@TriState.Checked"
+                                        : "@TriState.Unchecked";*@
+
+            var $hidden = $(".tri-state-hidden[name='" + this.name + "'][type='hidden']");
+            $hidden.val(newValue);
+        });
+
+        //$(".tri-state-box").mousedown(function () {
+        //    if (this.indeterminate)
+        //        this.checked = false;
+        //    else if (this.checked)
+        //        this.checked = false;
+        //    else if (!this.checked) {
+        //        var $box = $(".tri-state-box[name='" + this.name + "'][type='checkbox']");
+        //        $box.prop("indeterminate", true);
+        //    }
+        //});
+    </script>
+}

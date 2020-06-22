@@ -1,0 +1,4 @@
+﻿@model TriState
+
+@Html.HiddenFor(model => model, new { @class = "tri-state-hidden" })
+@Html.CheckBox(name: "", isChecked: (Model == TriState.Checked), htmlAttributes: new { @class = "tri-state-box" })

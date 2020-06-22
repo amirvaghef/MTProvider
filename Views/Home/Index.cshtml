@@ -1,0 +1,120 @@
+﻿@model IEnumerable<MTProvider.Models.PositionsDTO>
+
+<meta http-equiv="refresh" content="30" />
+
+<div class="jumbotron">
+    <h1>Meta Trader Provider</h1>
+    <p class="lead">Open and Close Positions on multi meta trader in this web site.</p>
+    <p>You can close all of trades on below link <br /> @Html.ActionLink("Urgently Close All", "CloseAll", "Home", new { onclick = "if(!ConfirmFunc()) return false;" }) </p>
+</div>
+<div class="row">
+    <div class="col">
+
+        <script>
+            @(ViewBag.sum = 0);
+        </script>
+        
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>
+                        @Html.DisplayNameFor(model => model.SymbolName)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.PositionState)
+                    </th>
+
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Select(m => new { m.RowNO, m.SymbolName, m.PositionState }).Distinct().ToList())
+                {
+                    <tr onclick="ShowHideDetail('@("detail" + item.RowNO)')">
+                        <td>
+                            @Html.DisplayFor(modelItem => item.SymbolName)
+                        </td>
+                        <td>
+                            @((item.PositionState) ? "Sell" : "Buy")
+                            @*@Html.DisplayFor(modelItem => item.PositionState)*@
+                        </td>
+                    </tr>
+
+                    <tr id='@("detail" + item.RowNO)' style="display:none;">
+                        <td colspan="2" style=" border:none;">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            @Html.DisplayNameFor(model => model.UserName)
+                                        </th>
+                                        <th>
+                                            @Html.DisplayNameFor(model => model.Volume)
+                                        </th>
+                                        <th>
+                                            @Html.DisplayNameFor(model => model.MarketPrice)
+                                        </th>
+                                        <th>
+                                            <span style=color:green>@Html.DisplayNameFor(model => model.Profit)</span> / <span style=color:red>Loss</span>
+                                        </th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item1 in Model.Where(m => m.RowNO == item.RowNO).ToList())
+                                    {
+                                        <tr>
+                                            <td>
+                                                @Html.DisplayFor(modelItem => item1.UserName)
+                                            </td>
+                                            <td>
+                                                @Html.DisplayFor(modelItem => item1.Volume)
+                                            </td>
+                                            <td>
+                                                @Html.DisplayFor(modelItem => item1.MarketPrice)
+                                            </td>
+                                            <td @((item1.Profit < 0) ? "style = color:red" : "style = color:green")>
+                                                @Html.DisplayFor(modelItem => item1.Profit)
+                                            </td>
+                                            <td>
+                                                @Html.ActionLink("Close", "Close", new { id = item1.ID })
+                                            </td>
+                                        </tr>
+
+                                        <script>
+                                            @(ViewBag.sum += item1.Profit);
+                                        </script>
+                                    }
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+
+        </table>
+    </div>
+</div>
+
+@section scripts
+{
+    <script>
+        @*function ConfirmFunc() {
+
+            if(confirm('Do you like close all ' + @Model.Count() + ' positions?'))
+            {
+                var sum = @ViewBag.sum;
+                if (confirm('You have ' + sum + ' profit/loss, Do you like close all of them?')) {
+                    if (confirm('Do you want close only profit positions?')) window.location.href = "@Url.Action("CloseAll", "Home", new { profitPoses = true }, Request.Url.Scheme)";
+                    else if(confirm('All of your positions are closing, Are you sure?')) window.location.href = "@Url.Action("CloseAll", "Home", new { profitPoses = false }, Request.Url.Scheme)";
+                }
+            }
+        }*@
+
+        function ShowHideDetail(detail)
+        {
+            var dt = document.getElementById(detail);
+            if(dt.style.display === "none") dt.style.display = "block";
+            else dt.style.display = "none";
+        }
+    </script>
+}
