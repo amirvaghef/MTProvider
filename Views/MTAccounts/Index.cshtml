@@ -20,32 +20,46 @@
             <th>
                 @Html.DisplayNameFor(model => model[0].Volume)
             </th>
+            <th>
+                @Html.DisplayNameFor(model => model[0].Leverage)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model[0].BrokerName)
+            </th>
             <th></th>
         </tr>
 
         @for (var i = 0; i < Model.Count; i++)
         {
             <tr>
-                <td>
+                <td style="width:13%;">
                     @Html.HiddenFor(item => item[i].UserName)
                     @Html.HiddenFor(item => item[i].Password)
+                    @Html.HiddenFor(item => item[i].Leverage)
+                    @Html.HiddenFor(item => item[i].BrokerName)
                     @Html.DisplayFor(item => item[i].UserName)
                 </td>
-                <td>
+                <td style="width:7%;">
                     @Html.EditorFor(item => item[i].Volume, new { htmlAttributes = new { @type = "number", @class = "form-control", @id = "Volume" + i } })
                     @Html.ValidationMessageFor(item => item[i].Volume, "", new { @class = "text-danger" })
                 </td>
-                <td>
-                    @Html.ActionLink("Change Password", "Edit", new { id = Model[i].UserName }) |
+                <td style="width:5%;">
+                    @Html.DisplayFor(item => item[i].Leverage)
+                </td>
+                <td style="width:65%;">
+                    @Html.DisplayFor(item => item[i].BrokerName)
+                </td>
+                <td style="width:10%;">
+                    @Html.ActionLink("Edit", "Edit", new { id = Model[i].UserName }) |
                     @Html.ActionLink("Delete", "Delete", new { id = Model[i].UserName })
                 </td>
             </tr>
         }
 
         <tr>
-            <td colspan="2">
-                <div class="col-md-offset-2 col-md-10">
-                    <input type="submit" value="Save" class="btn btn-default" onclick="if(!validation()) {alert('Sum of volumes must be 10');return false;}" />
+            <td colspan="5">
+                <div class="text-center col-md-12">
+                    <input type="submit" value="Save" class="btn btn-success btn-lg" onclick="if(!validation()) {alert('Sum of volumes must be 10');return false;}" />
                 </div>
             </td>
         </tr>
@@ -61,5 +75,5 @@
                 vols += parseInt($("#Volume"+i).val());
             if (vols != 10) return false; else return true;
         }
-    </script>    
+    </script>
 }

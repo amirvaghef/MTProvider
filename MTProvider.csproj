@@ -310,7 +310,6 @@
     <Content Include="Views\MTAccounts\Delete.cshtml" />
     <Content Include="Views\MTAccounts\Edit.cshtml" />
     <Content Include="Views\MTAccounts\Index.cshtml" />
-    <Content Include="Views\MTAccounts\Percents.cshtml" />
     <Content Include="Views\Positions\Index.cshtml" />
     <Content Include="Views\SymbolsEnable\Index.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\TriState.cshtml" />

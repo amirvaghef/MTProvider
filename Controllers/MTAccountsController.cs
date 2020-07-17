@@ -20,11 +20,6 @@ namespace MTProvider.Controllers
             return View(db.MTAccounts.ToList());
         }
 
-        //public ActionResult Percents()
-        //{
-        //    return View(db.MTAccounts.ToList());
-        //}
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Index(IEnumerable<MTAccounts> mTAccounts)
@@ -39,21 +34,6 @@ namespace MTProvider.Controllers
             return View(mTAccounts);
         }
 
-        // GET: MTAccounts/Details/5
-        //public ActionResult Details(string id)
-        //{
-        //    if (id == null)
-        //    {
-        //        return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-        //    }
-        //    MTAccounts mTAccounts = db.MTAccounts.Find(id);
-        //    if (mTAccounts == null)
-        //    {
-        //        return HttpNotFound();
-        //    }
-        //    return View(mTAccounts);
-        //}
-
         // GET: MTAccounts/Create
         public ActionResult Create()
         {
@@ -65,7 +45,7 @@ namespace MTProvider.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "UserName,Password,Volume")] MTAccounts mTAccounts)
+        public ActionResult Create([Bind(Include = "UserName,Password,Volume,Leverage,BrokerName")] MTAccounts mTAccounts)
         {
             if (ModelState.IsValid)
             {
@@ -104,7 +84,7 @@ namespace MTProvider.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "UserName,Password")] MTAccounts mTAccounts)
+        public ActionResult Edit([Bind(Include = "UserName,Volume,Password,Leverage,BrokerName")] MTAccounts mTAccounts)
         {
             if (ModelState.IsValid)
             {

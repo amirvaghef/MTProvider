@@ -1,20 +1,23 @@
 ﻿@model IEnumerable<MTProvider.Models.PositionsDTO>
 
-<meta http-equiv="refresh" content="30" />
-
+@*<meta http-equiv="refresh" content="300" id="myMeta" />*@
+<script src="/MTProvider/Scripts/highcharts.js"></script>
+<script src="/MTProvider/Scripts/modules/exporting.js"></script>
+<script src="/MTProvider/Scripts/modules/export-data.js"></script>
+<script src="/MTProvider/Scripts/modules/accessibility.js"></script>
+<div style="position:absolute;" >
+    <div class="input-group"> <span class="input-group-addon">Refresh Time (seconds)</span> <input type="number" id="refreshTime" class="form-control" style="width:75px;" onblur="setRefreshTime()" onkeyup="setRefreshTimeKeyUp(event)" placeholder="Seconds" value="@ViewBag.refreshTime" /> </div>
+</div>
 <div class="jumbotron">
-    <h1>Meta Trader Provider</h1>
+    
+    <h1>Current open positions</h1>
     <p class="lead">Open and Close Positions on multi meta trader in this web site.</p>
-    <p>You can close all of trades on below link <br /> @Html.ActionLink("Urgently Close All", "CloseAll", "Home", new { onclick = "if(!ConfirmFunc()) return false;" }) </p>
+    <p>@*You can close all of trades on below link <br />*@ @Html.ActionLink("Urgently Close All Positions", "CloseAll", "Home", new { onclick = "if(!ConfirmFunc()) return false;" }) </p>
 </div>
 <div class="row">
     <div class="col">
-
-        <script>
-            @(ViewBag.sum = 0);
-        </script>
         
-        <table class="table table-striped">
+        <table class="table table-hover">
             <thead>
                 <tr>
                     <th>
@@ -23,13 +26,31 @@
                     <th>
                         @Html.DisplayNameFor(model => model.PositionState)
                     </th>
-
+                    <th id="chartHeader">
+                        Chart
+                    </th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var item in Model.Select(m => new { m.RowNO, m.SymbolName, m.PositionState }).Distinct().ToList())
+                <tr style="height:0px;">
+                    <td class="col-md-2">
+                       
+                    </td>
+                    <td class="col-md-2">
+                       
+                    </td>
+                    <td id="chart" class="col-md-8" rowspan="@(Model.Select(m => new { m.SymbolName, m.PositionState }).Distinct().ToArray().Length + 1)">
+                        <figure class="highcharts-figure">
+                            <div id="container"></div>
+                            <p class="highcharts-description">
+                                Spline charts Profit of symbols.
+                            </p>
+                        </figure>
+                    </td>
+                </tr>
+                @foreach (var item in Model.Select(m => new { m.SymbolName, m.PositionState }).Distinct().ToList())
                 {
-                    <tr onclick="ShowHideDetail('@("detail" + item.RowNO)')">
+                    <tr onclick="ShowHideDetail('@("detail" + item.SymbolName + item.PositionState)')">
                         <td>
                             @Html.DisplayFor(modelItem => item.SymbolName)
                         </td>
@@ -39,7 +60,7 @@
                         </td>
                     </tr>
 
-                    <tr id='@("detail" + item.RowNO)' style="display:none;">
+                    <tr id='@("detail" + item.SymbolName + item.PositionState)' style="display:none;" class="detail">
                         <td colspan="2" style=" border:none;">
                             <table class="table table-bordered">
                                 <thead>
@@ -51,16 +72,31 @@
                                             @Html.DisplayNameFor(model => model.Volume)
                                         </th>
                                         <th>
+                                            @Html.DisplayNameFor(model => model.Price)
+                                        </th>
+                                        <th>
                                             @Html.DisplayNameFor(model => model.MarketPrice)
                                         </th>
                                         <th>
-                                            <span style=color:green>@Html.DisplayNameFor(model => model.Profit)</span> / <span style=color:red>Loss</span>
+                                            @Html.DisplayNameFor(model => model.Leverage)
+                                        </th>
+                                        <th>
+                                            <span style=color:green>@Html.DisplayNameFor(model => model.Profit)</span> / <span style=color:red>Loss</span> <span>$</span>
+                                        </th>
+                                        <th>
+                                            <span style=color:green>@Html.DisplayNameFor(model => model.Profit)</span> / <span style=color:red>Loss</span> <span>%</span>
                                         </th>
                                         <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var item1 in Model.Where(m => m.RowNO == item.RowNO).ToList())
+                                    <script>
+                                        @(ViewBag.sumVolume = 0)
+                                        @(ViewBag.sumPrice = 0)
+                                        @(ViewBag.sumProfit = 0)
+                                        @(ViewBag.sumProfitPercent = 0)
+                                    </script>
+                                    @foreach (var item1 in Model.Where(m => m.SymbolName == item.SymbolName && m.PositionState == item.PositionState).ToList())
                                     {
                                         <tr>
                                             <td>
@@ -70,10 +106,19 @@
                                                 @Html.DisplayFor(modelItem => item1.Volume)
                                             </td>
                                             <td>
+                                                @Html.DisplayFor(modelItem => item1.Price)
+                                            </td>
+                                            <td>
                                                 @Html.DisplayFor(modelItem => item1.MarketPrice)
+                                            </td>
+                                            <td>
+                                                @Html.DisplayFor(modelItem => item1.Leverage)
                                             </td>
                                             <td @((item1.Profit < 0) ? "style = color:red" : "style = color:green")>
                                                 @Html.DisplayFor(modelItem => item1.Profit)
+                                            </td>
+                                            <td @((item1.Profit < 0) ? "style = color:red" : "style = color:green")>
+                                                @Html.DisplayFor(modelItem => item1.ProfitPercent)
                                             </td>
                                             <td>
                                                 @Html.ActionLink("Close", "Close", new { id = item1.ID })
@@ -81,16 +126,52 @@
                                         </tr>
 
                                         <script>
-                                            @(ViewBag.sum += item1.Profit);
+                                            @(ViewBag.sumVolume += item1.Volume);
+                                            @(ViewBag.sumPrice += item1.Volume * item1.Price);
+                                            @(ViewBag.marketPrice = item1.MarketPrice);
+                                            @(ViewBag.sumProfit += item1.Profit);
+                                            @(ViewBag.sumProfitPercent += item1.ProfitPercent);
                                         </script>
+                                        <input type="hidden" value="@(ViewBag.sum = ViewBag.sum + item1.Profit)"/>
                                     }
+                                    <tr>
+                                        <td style="font-weight:bold">
+                                            Summary
+                                        </td>
+                                        <td style="font-weight:bold">
+                                            @ViewBag.sumVolume
+                                        </td>
+                                        <td style="font-weight:bold">
+                                            <script>@(ViewBag.sumPrice = Math.Round((ViewBag.sumPrice/ViewBag.sumVolume) * 100000) / 100000)</script>
+                                            @ViewBag.sumPrice
+                                        </td>
+                                        <td style="font-weight:bold">
+                                            @ViewBag.marketPrice
+                                        </td>
+                                        <td>
+
+                                        </td>
+                                        <td @((ViewBag.sumProfit < 0) ? "style = color:red;" : "style = color:green;")>
+                                            <script>@(ViewBag.sumProfit = Math.Round(ViewBag.sumProfit * 100) / 100)</script>
+                                            <span style="font-weight:bold">@ViewBag.sumProfit</span> 
+                                        </td>
+                                        <td @((ViewBag.sumProfitPercent < 0) ? "style = color:red;" : "style = color:green;")>
+                                            <script>@(ViewBag.sumProfitPercent = Math.Round(ViewBag.sumProfitPercent * 100) / 100)</script>
+                                            <span style="font-weight:bold">@ViewBag.sumProfitPercent</span> 
+                                        </td>
+                                        <td style="font-weight:bold">
+                                            @Html.ActionLink("Close All", "CloseGroup", new { SymbolName = item.SymbolName, PositionState = item.PositionState })
+                                        </td>
+                                    </tr>
+                                    <input type="hidden" class="symbolName" value="@item.SymbolName"/>
+                                    <input type="hidden" class="profit" value="@ViewBag.sumProfit" />
                                 </tbody>
                             </table>
                         </td>
                     </tr>
                 }
             </tbody>
-
+            <div id="dialog-confirm"></div>
         </table>
     </div>
 </div>
@@ -98,23 +179,177 @@
 @section scripts
 {
     <script>
-        @*function ConfirmFunc() {
+            var symbolNames = [];
+            var profits = [];
+            for (var i = $('.symbolName').length - 1; i >= 0; i--) {
+                symbolNames.push($('.symbolName')[i].value.trim());
+                profits.push(parseFloat($('.profit')[i].value));
+            }
+        Highcharts.chart('container', {
+            chart: {
+                type: 'spline',
+                inverted: true
+            },
+            title: {
+                text: 'Profit per symbol'
+            },
+            subtitle: {
+                text: 'According to open positions'
+            },
+            xAxis: {
+                reversed: false,
+                categories: symbolNames,
+                title: {
+                    enabled: true,
+                    text: 'Symbols'
+                },
+                labels: {
+                    format: '{value}'
+                },
+                //accessibility: {
+                //    rangeDescription: 'Range: 0 to 80 km.'
+                //},
+                //maxPadding: 0.05,
+                showLastLabel: true
+            },
+            yAxis: {
+                title: {
+                    text: 'Profit'
+                },
+                labels: {
+                    format: '{value}$'
+                },
+                //accessibility: {
+                //    rangeDescription: 'Range: -90°C to 20°C.'
+                //},
+                lineWidth: 2
+            },
+            legend: {
+                enabled: false
+            },
+            tooltip: {
+                //headerFormat: '<b>{series.name}</b><br/>'
+                //pointFormat: '{categories}: {point.y}$'
+            },
+            plotOptions: {
+                spline: {
+                    marker: {
+                        enable: false
+                    }
+                }
+            },
+            series: [{
+                name: 'Profit',
+                data: profits
+            }]
+        });
 
-            if(confirm('Do you like close all ' + @Model.Count() + ' positions?'))
+        function setRefreshTime() {
+            var refreshTime = document.getElementById("refreshTime").value;
+            window.location.href = '@Url.Action("Index", "Home")' + "?refreshTime=" + refreshTime;
+        }
+
+        function setRefreshTimeKeyUp(event) {
+            if (event.keyCode === 13) {
+                var refreshTime = document.getElementById("refreshTime").value;
+                window.location.href = '@Url.Action("Index", "Home")' + "?refreshTime=" + refreshTime;
+            }
+        }
+
+        function ConfirmFunc() {
+            $("#dialog-confirm").html('Do you like close all ' + @Model.Count() + ' positions?');
+            $("#dialog-confirm").dialog({
+                resizable:false,
+                modal:true,
+                title:"Number of positions",
+                height:250,
+                width:400,
+                buttons:{
+                    "Yes": function(){
+                        var sum = Math.round((@ViewBag.sum + Number.EPSILON) * 100) / 100;
+                        $("#dialog-confirm").html('You have ' + sum + ' $ profit/loss, Do you like close all of them?');
+                        $("#dialog-confirm").dialog({
+                            resizable: false,
+                            modal: true,
+                            title: "Amount of profit/loss of positions",
+                            height: 250,
+                            width: 400,
+                            buttons: {
+                                "Yes": function () {
+                                    $("#dialog-confirm").html('Do you prefer close only profit positions?');
+                                    $("#dialog-confirm").dialog({
+                                        resizable: false,
+                                        modal: true,
+                                        title: "Profit positions",
+                                        height: 250,
+                                        width: 400,
+                                        buttons: {
+                                            "Yes": function () {
+                                                window.location.href = "@Url.Action("CloseAll", "Home", new { profitPoses = true }, Request.Url.Scheme)";
+                                            },
+                                            "No": function () {
+                                                $("#dialog-confirm").html('All of your positions are closing, Are you sure?');
+                                                $("#dialog-confirm").dialog({
+                                                    resizable: false,
+                                                    modal: true,
+                                                    title: "Close all positions",
+                                                    height: 250,
+                                                    width: 400,
+                                                    buttons: {
+                                                        "Yes": function () {
+                                                            window.location.href = "@Url.Action("CloseAll", "Home", new { profitPoses = false }, Request.Url.Scheme)";
+                                                        },
+                                                        "No": function () {
+                                                            $(this).dialog('close');
+                                                        }
+                                                    }
+                                                });
+                                            },
+                                        }
+                                    });
+                                },
+                                "No": function () {
+                                    $(this).dialog('close');
+                                }
+                            }
+                        });
+                    },
+                    "No": function(){
+                        $(this).dialog('close');
+                    }
+                }
+            });
+            @*if(confirm('Do you like close all ' + @Model.Count() + ' positions?'))
             {
                 var sum = @ViewBag.sum;
-                if (confirm('You have ' + sum + ' profit/loss, Do you like close all of them?')) {
+                if (confirm('You have ' + sum + ' $ profit/loss, Do you like close all of them?')) {
                     if (confirm('Do you want close only profit positions?')) window.location.href = "@Url.Action("CloseAll", "Home", new { profitPoses = true }, Request.Url.Scheme)";
                     else if(confirm('All of your positions are closing, Are you sure?')) window.location.href = "@Url.Action("CloseAll", "Home", new { profitPoses = false }, Request.Url.Scheme)";
                 }
-            }
-        }*@
+            }*@
+        }
 
         function ShowHideDetail(detail)
         {
             var dt = document.getElementById(detail);
-            if(dt.style.display === "none") dt.style.display = "block";
-            else dt.style.display = "none";
+            var chrt = document.getElementById('chart');
+            var chrtheader = document.getElementById('chartHeader');
+            if (dt.style.display === "none") {
+                dt.style.display = "block";
+                chrt.style.display = "none";
+                chrtheader.style.display = "none";
+            }
+            else {
+                dt.style.display = "none";
+                var dsply = true;
+                for (var i = 0; i < $('.detail').length; i++)
+                    if ($('.detail')[i].style.display != "none")
+                        dsply = false;
+                if (dsply) {
+                    chrtheader.style.display = "";
+                    chrt.style.display = "";
+                }
+            }
         }
     </script>
 }

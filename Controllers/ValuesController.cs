@@ -12,7 +12,7 @@ namespace MTProvider.Controllers
     public class ValuesController : ApiController
     {
         private ApplicationDbContext db = new ApplicationDbContext();
-        
+
 
         [AllowAnonymous]
         public IEnumerable<Positions> GetOpenPositions(string Username)
@@ -28,7 +28,7 @@ namespace MTProvider.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public void SetOpenPositions(long ID, int TicketNO, double Price)
+        public void SetOpenPositions(long ID, int TicketNO, double Price, double USDPrice)
         {
             Positions newpositions = db.Positions.Find(ID);
             /*Positions samePositions = db.Positions.Where(a => a.SymbolName == newpositions.SymbolName && a.PositionState == newpositions.PositionState && a.TicketNO != 0 && a.IsClose == false).SingleOrDefault();
@@ -70,9 +70,10 @@ namespace MTProvider.Controllers
             }
             else
             {*/
-                newpositions.TicketNO = TicketNO;
-                newpositions.Price = Price;
-                db.Entry(newpositions).State = System.Data.Entity.EntityState.Modified;
+            newpositions.TicketNO = TicketNO;
+            newpositions.Price = Price;
+            newpositions.PriceInUSD = USDPrice;
+            db.Entry(newpositions).State = System.Data.Entity.EntityState.Modified;
             //}
             db.SaveChanges();
         }
@@ -90,11 +91,13 @@ namespace MTProvider.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public void SetSymbolPrice(string Symbol, double AskPrice, double BidPrice)
+        public void SetSymbolPrice(string Symbol, double AskPrice, double BidPrice, double PerUSDAsk, double PerUSDBid)
         {
             MTSymbols mTSymbols = db.MTSymbols.Find(Symbol);
             mTSymbols.AskPrice = AskPrice;
             mTSymbols.BidPrice = BidPrice;
+            mTSymbols.PerUSDAsk = PerUSDAsk;
+            mTSymbols.PerUSDBid = PerUSDBid;
             db.Entry(mTSymbols).State = System.Data.Entity.EntityState.Modified;
             db.SaveChanges();
         }

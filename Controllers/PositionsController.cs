@@ -38,6 +38,7 @@ namespace MTProvider.Controllers
                         position.PositionState = false;
                         position.PositionStatus = false;
                         position.SymbolName = positions.SymbolName;
+                        position.PriceInUSDSymbol = db.MTSymbols.Where(a => a.Name == positions.SymbolName).FirstOrDefault().ChngFromUSDSymbol;
                         position.UserName = mTAccount.UserName;
                         position.Volume = Double.Parse(((positions.Volume / 10) * (mTAccount.Volume.Equals(DBNull.Value) ? 0 : mTAccount.Volume)).ToString());
                         db.Positions.Add(position);
@@ -66,6 +67,7 @@ namespace MTProvider.Controllers
                         position.PositionState = true;
                         position.PositionStatus = false;
                         position.SymbolName = positions.SymbolName;
+                        position.PriceInUSDSymbol = db.MTSymbols.Where(a => a.Name == positions.SymbolName).FirstOrDefault().ChngFromUSDSymbol;
                         position.UserName = mTAccount.UserName;
                         position.Volume = Double.Parse(((positions.Volume / 10) * (mTAccount.Volume.Equals(DBNull.Value) ? 0 : mTAccount.Volume)).ToString());
                         db.Positions.Add(position);

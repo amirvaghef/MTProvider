@@ -14,7 +14,7 @@
                 <th></th>
                 @foreach (var item in (IEnumerable<MTProvider.Models.MTAccounts>)ViewBag.MTAccounts)
                 {
-                    <th>
+                    <th data-toggle="tooltip" title="@item.BrokerName" data-placement="bottom">
                         @Html.DisplayFor(model => item.UserName)
                     </th>
                 }
@@ -36,7 +36,7 @@
                                 <td>
                                     @Html.HiddenFor(item => item[i].SymbolName)
                                     @Html.HiddenFor(item => item[i].UserName)
-                                    @Html.EditorFor(item => item[i].StatusTri, new { @id = "StatusTri" + itemAccount.UserName + itemSymbol.Name})
+                                    @Html.EditorFor(item => item[i].StatusTri, new { @id = "StatusTri" + itemAccount.UserName + itemSymbol.Name })
                                 </td>
                             }
                         }
@@ -56,6 +56,10 @@
 @section scripts
 {
     <script>
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip({ container: 'body' });
+        });
+
         $(".tri-state-hidden").each(function () {
             var isIndeterminate = this.value === "@TriState.Indeterminate";
             if (isIndeterminate) {
