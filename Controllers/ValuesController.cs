@@ -102,6 +102,54 @@ namespace MTProvider.Controllers
             db.SaveChanges();
         }
 
+        [AllowAnonymous]
+        public IList<MTHistoryMSDTO> GetHistoryMS()
+        {
+            return (from ms in db.MTHistoryMS
+                   //join dt in db.MTHistoryDT on ms.ID equals dt.MSID into dtms
+                   //from dt in dtms.DefaultIfEmpty()
+                   select new MTHistoryMSDTO
+                   {
+                       ID = ms.ID,
+                       Symbol = ms.Symbol,
+                       Period = ms.Period,
+                       StartTime = db.MTHistoryDT.Where(a => a.MSID == ms.ID).Max(a => a.Time) ?? /*Select(a=>a.Time).DefaultIfEmpty(DateTime.MinValue).Max()*/ ms.StartTime
+                   }).ToList();
+
+            //return db.MTHistoryMS.Select(a => new { ID = a.ID, Symbol = a.Symbol, Period = a.Period, StartTime = Max(db.MTHistoryDT.Where(b => b.MSID == a.ID).Max(b => b.Time)/*Select(a=>a.Time).DefaultIfEmpty(DateTime.MinValue).Max()*/, a.StartTime) }).ToArray();
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public void SetHistoryDT(short MSID, double Close, double Open, double High, double Low, DateTime Time, double Volume)
+        {
+            MTHistoryDT mTHistorys = new MTHistoryDT();
+            //mTHistorys.ID = BitConverter.GetBytes(DateTime.UtcNow.Ticks).Reverse().ToArray();
+            mTHistorys.MSID = MSID;
+            mTHistorys.Close = Close;
+            mTHistorys.Open = Open;
+            mTHistorys.High = High;
+            mTHistorys.Low = Low;
+            mTHistorys.Time = Time;
+            mTHistorys.Volume = Volume;
+            db.MTHistoryDT.Add(mTHistorys);
+            //db.Entry(mTHistorys).State = System.Data.Entity.EntityState.Added;
+            db.SaveChanges();
+        }
+
+
+        static DateTime? Max(DateTime? a, DateTime? b)
+        {
+            if (!a.HasValue && !b.HasValue) return a;  // doesn't matter
+
+            if (!a.HasValue) return b;
+            if (!b.HasValue) return a;
+
+            return a.Value > b.Value ? a : b;
+        }
+
+
+
         // GET api/values
         public IEnumerable<string> Get()
         {

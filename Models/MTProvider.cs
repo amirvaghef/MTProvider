@@ -151,4 +151,82 @@ namespace MTProvider.Models
 
         public short Leverage { get; set; }
     }
+
+    public class MTHistoryMSDTO
+    {
+        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        //public MTHistoryMS()
+        //{
+        //    this.MTHistoryDTs = new HashSet<MTHistoryDT>();
+        //}
+
+        [Key]
+        public short ID { get; set; }
+        public string Symbol { get; set; }
+        public Nullable<int> Period { get; set; }
+        public Nullable<System.DateTime> StartTime { get; set; }
+        public Nullable<bool> AutoBuySell { get; set; }
+
+        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        //public virtual ICollection<MTHistoryDT> MTHistoryDTs { get; set; }
+        //public virtual MTPeriod MTPeriod { get; set; }
+        //public virtual MTSymbols MTSymbol { get; set; }
+    }
+
+    [Table("MTPeriod")]
+    public class MTPeriod
+    {
+        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        //public MTPeriod()
+        //{
+        //    this.MTHistoryMS = new HashSet<MTHistoryMS>();
+        //}
+
+        [Key]
+        public int PeriodID { get; set; }
+        public string PeriodName { get; set; }
+
+        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        //public virtual ICollection<MTHistoryMS> MTHistoryMS { get; set; }
+    }
+
+    [Table("MTHistoryMS")]
+    public class MTHistoryMS
+    {
+        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        //public MTHistoryMS()
+        //{
+        //    this.MTHistoryDTs = new HashSet<MTHistoryDT>();
+        //}
+
+        [Key]
+        public short ID { get; set; }
+        public string Symbol { get; set; }
+        public Nullable<int> Period { get; set; }
+        public Nullable<System.DateTime> StartTime { get; set; }
+        public Nullable<bool> AutoBuySell { get; set; }
+
+        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        //public virtual ICollection<MTHistoryDT> MTHistoryDTs { get; set; }
+        //public virtual MTPeriod MTPeriod { get; set; }
+        //public virtual MTSymbols MTSymbol { get; set; }
+    }
+
+    [Table("MTHistoryDT")]
+    public class MTHistoryDT
+    {
+        [Key]
+        [Timestamp]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public byte[] ID { get; set; }
+        public Nullable<short> MSID { get; set; }
+        public Nullable<System.DateTime> Time { get; set; }
+        public Nullable<double> Open { get; set; }
+        public Nullable<double> Close { get; set; }
+        public Nullable<double> Low { get; set; }
+        public Nullable<double> High { get; set; }
+        public Nullable<double> Volume { get; set; }
+
+        //public virtual MTHistoryMS MTHistoryMS { get; set; }
+    }
 }

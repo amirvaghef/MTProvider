@@ -30,6 +30,8 @@ namespace MTProvider.Models
             return new ApplicationDbContext();
         }
 
+        public System.Data.Entity.DbSet<MTProvider.Models.MTHistoryDT> MTHistoryDT { get; set; }
+        public System.Data.Entity.DbSet<MTProvider.Models.MTHistoryMS> MTHistoryMS { get; set; }
         public System.Data.Entity.DbSet<MTProvider.Models.MTAccounts> MTAccounts { get; set; }
         public System.Data.Entity.DbSet<MTProvider.Models.MTSymbols> MTSymbols { get; set; }
         public System.Data.Entity.DbSet<MTProvider.Models.Positions> Positions { get; set; }
