@@ -106,17 +106,35 @@ namespace MTProvider.Controllers
         public IList<MTHistoryMSDTO> GetHistoryMS()
         {
             return (from ms in db.MTHistoryMS
-                   //join dt in db.MTHistoryDT on ms.ID equals dt.MSID into dtms
-                   //from dt in dtms.DefaultIfEmpty()
                    select new MTHistoryMSDTO
                    {
                        ID = ms.ID,
                        Symbol = ms.Symbol,
                        Period = ms.Period,
-                       StartTime = db.MTHistoryDT.Where(a => a.MSID == ms.ID).Max(a => a.Time) ?? /*Select(a=>a.Time).DefaultIfEmpty(DateTime.MinValue).Max()*/ ms.StartTime
-                   }).ToList();
+                       StartTime = db.MTHistoryDT.Where(a => a.MSID == ms.ID).Max(a => a.Time) ?? ms.StartTime,
+                       EndTime = DateTime.Now
+                   }).Union(
+                    from ms in db.MTHistoryMS
+                    select new MTHistoryMSDTO
+                    {
+                        ID = ms.ID,
+                        Symbol = ms.Symbol,
+                        Period = ms.Period,
+                        StartTime = ms.StartTime,
+                        EndTime = db.MTHistoryDT.Where(a => a.MSID == ms.ID).Min(a => a.Time) ?? ms.StartTime
+                    }).ToList();
 
             //return db.MTHistoryMS.Select(a => new { ID = a.ID, Symbol = a.Symbol, Period = a.Period, StartTime = Max(db.MTHistoryDT.Where(b => b.MSID == a.ID).Max(b => b.Time)/*Select(a=>a.Time).DefaultIfEmpty(DateTime.MinValue).Max()*/, a.StartTime) }).ToArray();
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public void SetHistoryMSTicks(short ID, int allTicks)
+        {
+            MTHistoryMS mtHistoryMS = db.MTHistoryMS.Where(a => a.ID == ID).FirstOrDefault();
+            mtHistoryMS.AllTicks += allTicks;
+            
+            db.SaveChanges();
         }
 
         [AllowAnonymous]
@@ -133,6 +151,10 @@ namespace MTProvider.Controllers
             mTHistorys.Time = Time;
             mTHistorys.Volume = Volume;
             db.MTHistoryDT.Add(mTHistorys);
+
+            MTHistoryMS mtHistoryMS = db.MTHistoryMS.Where(a => a.ID == MSID).FirstOrDefault();
+            mtHistoryMS.MyTicks++;
+
             //db.Entry(mTHistorys).State = System.Data.Entity.EntityState.Added;
             db.SaveChanges();
         }

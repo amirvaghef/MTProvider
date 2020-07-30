@@ -14,12 +14,14 @@ namespace MTProvider.Models
         [Key]
         public string UserName { get; set; }
 
+        [Required]
         public string Password { get; set; }
 
         public double? Volume { get; set; }
 
         public string BrokerName { get; set; }
 
+        [Required]
         public short Leverage { get; set; }
     }
 
@@ -165,6 +167,7 @@ namespace MTProvider.Models
         public string Symbol { get; set; }
         public Nullable<int> Period { get; set; }
         public Nullable<System.DateTime> StartTime { get; set; }
+        public Nullable<System.DateTime> EndTime { get; set; }
         public Nullable<bool> AutoBuySell { get; set; }
 
         //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
@@ -202,9 +205,11 @@ namespace MTProvider.Models
         [Key]
         public short ID { get; set; }
         public string Symbol { get; set; }
-        public Nullable<int> Period { get; set; }
-        public Nullable<System.DateTime> StartTime { get; set; }
-        public Nullable<bool> AutoBuySell { get; set; }
+        public int Period { get; set; }
+        public System.DateTime StartTime { get; set; }
+        public bool AutoBuySell { get; set; }
+        public int AllTicks { get; set; }
+        public int MyTicks { get; set; }
 
         //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         //public virtual ICollection<MTHistoryDT> MTHistoryDTs { get; set; }

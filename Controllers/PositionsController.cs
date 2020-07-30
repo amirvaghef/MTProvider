@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using System.Data.Entity.Core.Objects;
 
 namespace MTProvider.Controllers
 {
@@ -13,11 +14,70 @@ namespace MTProvider.Controllers
         private ApplicationDbContext db = new ApplicationDbContext();
 
         // GET: Positions
-        public ActionResult Index()
+        public ActionResult Index(Positions positions)
         {
+
             ViewBag.Symbols = new SelectList(db.MTSymbols.ToList(), "Name", "Name");
+
+            string symbol = ((SelectList)ViewBag.Symbols).First().Value;
+            if (positions.SymbolName != null)
+            {
+                symbol = positions.SymbolName;
+                foreach (var modelValue in ModelState.Values)
+                    modelValue.Errors.Clear();
+            }
+
+            ViewBag.LastYearD1 = (from ms in db.MTHistoryMS
+                                  join dt in db.MTHistoryDT on ms.ID equals dt.MSID
+                                  where ms.Symbol == symbol && ms.Period == 16408 /*D1*/ && dt.Time >= EntityFunctions.AddDays(EntityFunctions.AddYears(DateTime.Now, -1), -15) && dt.Time <= EntityFunctions.AddDays(EntityFunctions.AddYears(DateTime.Now, -1), 15)
+                                  select dt).ToArray();
+            ViewBag.CurYearD1 = (from ms in db.MTHistoryMS
+                                 join dt in db.MTHistoryDT on ms.ID equals dt.MSID
+                                 where ms.Symbol == symbol && ms.Period == 16408 /*D1*/ && dt.Time >= EntityFunctions.AddDays(DateTime.Now, -15) && dt.Time <= DateTime.Now
+                                 select dt).ToArray();
+
+            ViewBag.Last3YearMN1 = (from ms in db.MTHistoryMS
+                                    join dt in db.MTHistoryDT on ms.ID equals dt.MSID
+                                    where ms.Symbol == symbol && ms.Period == 49153 /*MN1*/ && dt.Time >= EntityFunctions.AddYears(DateTime.Now, -3) && dt.Time <= DateTime.Now
+                                    select dt).ToArray();
+
+            ViewBag.Last3MonthsD1 = (from ms in db.MTHistoryMS
+                                     join dt in db.MTHistoryDT on ms.ID equals dt.MSID
+                                     where ms.Symbol == symbol && ms.Period == 16408 /*D1*/ && dt.Time >= EntityFunctions.AddMonths(DateTime.Now, -3) && dt.Time <= DateTime.Now
+                                     select dt).ToArray();
+
+
             return View();
         }
+
+        //[HttpPost]
+        //[MultipleButton(Name = "action", Argument = "Change")]
+        //public ActionResult Change(Positions positions)
+        //{
+        //    //ViewBag.Symbols = new SelectList(db.MTSymbols.ToList(), "Name", "Name");
+        //    string symbol = positions.SymbolName;
+        //    ViewBag.Symbol = symbol;
+        //    ViewBag.LastYearD1 = (from ms in db.MTHistoryMS
+        //                          join dt in db.MTHistoryDT on ms.ID equals dt.MSID
+        //                          where ms.Symbol == symbol && ms.Period == 16408 /*D1*/ && dt.Time >= EntityFunctions.AddDays(EntityFunctions.AddYears(DateTime.Now, -1), -15) && dt.Time <= EntityFunctions.AddDays(EntityFunctions.AddYears(DateTime.Now, -1), 15)
+        //                          select dt).ToArray();
+        //    ViewBag.CurYearD1 = (from ms in db.MTHistoryMS
+        //                         join dt in db.MTHistoryDT on ms.ID equals dt.MSID
+        //                         where ms.Symbol == symbol && ms.Period == 16408 /*D1*/ && dt.Time >= EntityFunctions.AddDays(DateTime.Now, -15) && dt.Time <= DateTime.Now
+        //                         select dt).ToArray();
+
+        //    ViewBag.Last3YearMN1 = (from ms in db.MTHistoryMS
+        //                            join dt in db.MTHistoryDT on ms.ID equals dt.MSID
+        //                            where ms.Symbol == symbol && ms.Period == 49153 /*MN1*/ && dt.Time >= EntityFunctions.AddYears(DateTime.Now, -3) && dt.Time <= DateTime.Now
+        //                            select dt).ToArray();
+
+        //    ViewBag.Last3MonthsD1 = (from ms in db.MTHistoryMS
+        //                             join dt in db.MTHistoryDT on ms.ID equals dt.MSID
+        //                             where ms.Symbol == symbol && ms.Period == 16408 /*D1*/ && dt.Time >= EntityFunctions.AddMonths(DateTime.Now, -3) && dt.Time <= DateTime.Now
+        //                             select dt).ToArray();
+
+        //    return View("Index");
+        //}
 
         [HttpPost]
         [MultipleButton(Name = "action", Argument = "Buy")]

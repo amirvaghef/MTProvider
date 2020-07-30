@@ -1,44 +1,341 @@
 ﻿@model MTProvider.Models.Positions
 
+<script src="/MTProvider/Scripts/highcharts.js"></script>
+<script src="/MTProvider/Scripts/modules/exporting.js"></script>
+<script src="/MTProvider/Scripts/modules/export-data.js"></script>
+<script src="/MTProvider/Scripts/modules/accessibility.js"></script>
+
 @{
     ViewBag.Title = "Open & Close Positions";
 }
 
 <h2>Open & Close Positions</h2>
 
+<hr />
+<div class="row">
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
 
-@using (Html.BeginForm()) 
-{
-    @Html.AntiForgeryToken()
-    
-    <div class="form-horizontal">
-        <hr />
-        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-        <div class="form-group">
-            @Html.LabelFor(model => model.SymbolName, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.DropDownListFor(model => model.SymbolName, (SelectList)ViewBag.Symbols, new { @class = "form-control" } )
-                @Html.ValidationMessageFor(model => model.SymbolName, "", new { @class = "text-danger" })
+        <div class="form-horizontal col-md-6">
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+            <div class="form-group">
+                @Html.LabelFor(model => model.SymbolName, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.DropDownListFor(model => model.SymbolName, (SelectList)ViewBag.Symbols, new { @class = "form-control", @onchange = "this.form.submit()" })
+                    @Html.ValidationMessageFor(model => model.SymbolName, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Volume, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.Volume, new { htmlAttributes = new { @class = "form-control", @type = "number", @min = "0.01", @step = "0.01", @value = "0.01" } })
+                    @Html.ValidationMessageFor(model => model.Volume, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-offset-2 col-md-10">
+                    <input type="submit" value="Buy" name="action:Buy" class="btn btn-default" />
+                    <input type="submit" value="Sell" name="action:Sell" class="btn btn-default" />
+                </div>
             </div>
         </div>
 
-        <div class="form-group">
-            @Html.LabelFor(model => model.Volume, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.Volume, new { htmlAttributes = new { @class = "form-control", @type = "number", @min = "0.01", @step = "0.01", @value = "0.01" } })
-                @Html.ValidationMessageFor(model => model.Volume, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Buy" name="action:Buy" class="btn btn-default" />
-                <input type="submit" value="Sell" name="action:Sell" class="btn btn-default" />
-            </div>
-        </div>
+    }
+    <div class="col-md-6 panel panel-default"">
+        <figure class="highcharts-figure">
+            <div id="container1"></div>
+            <p class="highcharts-description">
+            </p>
+        </figure>
     </div>
-}
+</div>
+<div class="row">
+    <div class="col-md-6 panel panel-default"">
+        <figure class="highcharts-figure">
+            <div id="container2"></div>
+            <p class="highcharts-description">
+
+            </p>
+        </figure>
+    </div>
+    <div class="col-md-6 panel panel-default"">
+        <figure class="highcharts-figure">
+            <div id="container3"></div>
+            <p class="highcharts-description">
+            </p>
+        </figure>
+    </div>
+</div>
 
 @section Scripts {
-    @Scripts.Render("~/bundles/jqueryval")
+    @*@Scripts.Render("~/bundles/jqueryval")*@
+
+    <script type="text/javascript">
+
+        var lastyear = [];
+        var arrayLastYear = @Html.Raw(
+            Json.Encode(
+                ((IEnumerable<MTProvider.Models.MTHistoryDT>)ViewBag.LastYearD1).Select(a => new
+                {
+                    Time = a.Time.Value.AddYears(1).ToShortDateString(),
+                    Close = a.Close
+                })
+            )
+        );
+
+        for (var i = arrayLastYear.length - 1; i >= 0; i--) {
+            var arrayTemp = [Date.parse(arrayLastYear[i].Time), arrayLastYear[i].Close];
+            lastyear.push(arrayTemp);
+        }
+
+        var curyear = [];
+        var arrayCurrYear = @Html.Raw(
+            Json.Encode(
+                ((IEnumerable<MTProvider.Models.MTHistoryDT>)ViewBag.CurYearD1).Select(a => new
+                {
+                    Time = a.Time.Value.ToShortDateString(),
+                    Close = a.Close
+                })
+            )
+        );
+        for (var i = arrayCurrYear.length - 1; i >= 0; i--) {
+            var arrayTemp = [Date.parse(arrayCurrYear[i].Time), arrayCurrYear[i].Close];
+            curyear.push(arrayTemp);
+        }
+
+        var last3year = [];
+        var arraylast3Year = @Html.Raw(
+            Json.Encode(
+                ((IEnumerable<MTProvider.Models.MTHistoryDT>)ViewBag.Last3YearMN1).Select(a => new
+                {
+                    Time = a.Time.Value.ToShortDateString(),
+                    Close = a.Close
+                })
+            )
+        );
+        for (var i = arraylast3Year.length - 1; i >= 0; i--) {
+            var arrayTemp = [Date.parse(arraylast3Year[i].Time), arraylast3Year[i].Close];
+            last3year.push(arrayTemp);
+        }
+        
+
+        var last3month = [];
+        var arraylast3month = @Html.Raw(
+            Json.Encode(
+                ((IEnumerable<MTProvider.Models.MTHistoryDT>)ViewBag.Last3MonthsD1).Select(a => new
+                {
+                    Time = a.Time.Value.ToShortDateString(),
+                    Close = a.Close
+                })
+            )
+        );
+        for (var i = arraylast3month.length - 1; i >= 0; i--) {
+            var arrayTemp = [Date.parse(arraylast3month[i].Time), arraylast3month[i].Close];
+            last3month.push(arrayTemp);
+        }
+
+        Highcharts.chart('container1', {
+            chart: {
+                type: 'spline'
+            },
+            title: {
+                text: 'Last Year vs Current Year (two weeks period)'
+            },
+            subtitle: {
+                text: 'Time Frame: D1'
+            },
+            xAxis: {
+                type: 'datetime',
+                dateTimeLabelFormats: { // don't display the dummy year
+                    month: '%e. %b',
+                    //year: '%b'
+                },
+                title: {
+                    text: 'Date'
+                }
+            },
+            yAxis: {
+                title: {
+                    text: 'Rate'
+                }
+            },
+            tooltip: {
+                headerFormat: '<b>{series.name}</b><br>',
+                pointFormat: '{point.x:%e. %b}: {point.y:.5f}'
+            },
+
+            plotOptions: {
+                series: {
+                    marker: {
+                        enabled: true
+                    }
+                }
+            },
+
+            colors: ['#6CF', '#f66', '#036', '#000'],
+
+            // Define the data points. All series have a dummy year
+            // of 1970/71 in order to be compared on the same x axis. Note
+            // that in JavaScript, months start at 0 for January, 1 for February etc.
+            series: [{
+                name: "Last Year",
+                data: lastyear
+            }, {
+                name: "Current Year",
+                data: curyear
+            }],
+
+            responsive: {
+                rules: [{
+                    condition: {
+                        maxWidth: 500
+                    },
+                    chartOptions: {
+                        plotOptions: {
+                            series: {
+                                marker: {
+                                    radius: 2.5
+                                }
+                            }
+                        }
+                    }
+                }]
+            }
+        });
+
+        Highcharts.chart('container2', {
+            chart: {
+                type: 'spline'
+            },
+            title: {
+                text: 'Last 3 Years'
+            },
+            subtitle: {
+                text: 'Time Frame: MN1'
+            },
+            xAxis: {
+                type: 'datetime',
+                dateTimeLabelFormats: { // don't display the dummy year
+                    month: '%e. %b',
+                    year: '%b'
+                },
+                title: {
+                    text: 'Date'
+                }
+            },
+            yAxis: {
+                title: {
+                    text: 'Rate'
+                }
+            },
+            tooltip: {
+                headerFormat: '<b>{series.name}</b><br>',
+                pointFormat: '{point.x:%e. %b}: {point.y:.5f}'
+            },
+
+            plotOptions: {
+                series: {
+                    marker: {
+                        enabled: true
+                    }
+                }
+            },
+
+            colors: ['#6CF', '#036', '#000'],
+
+            // Define the data points. All series have a dummy year
+            // of 1970/71 in order to be compared on the same x axis. Note
+            // that in JavaScript, months start at 0 for January, 1 for February etc.
+            series: [{
+                name: "Last 3 Years",
+                data: last3year
+            }],
+
+            responsive: {
+                rules: [{
+                    condition: {
+                        maxWidth: 500
+                    },
+                    chartOptions: {
+                        plotOptions: {
+                            series: {
+                                marker: {
+                                    radius: 2.5
+                                }
+                            }
+                        }
+                    }
+                }]
+            }
+        });
+
+        Highcharts.chart('container3', {
+            chart: {
+                type: 'spline'
+            },
+            title: {
+                text: 'Last 3 Months'
+            },
+            subtitle: {
+                text: 'Time Frame: D1'
+            },
+            xAxis: {
+                type: 'datetime',
+                dateTimeLabelFormats: { // don't display the dummy year
+                    month: '%e. %b',
+                    year: '%b'
+                },
+                title: {
+                    text: 'Date'
+                }
+            },
+            yAxis: {
+                title: {
+                    text: 'Rate'
+                }
+            },
+            tooltip: {
+                headerFormat: '<b>{series.name}</b><br>',
+                pointFormat: '{point.x:%e. %b}: {point.y:.5f} m'
+            },
+
+            plotOptions: {
+                series: {
+                    marker: {
+                        enabled: true
+                    }
+                }
+            },
+
+            colors: ['#6CF', '#036', '#000'],
+
+            // Define the data points. All series have a dummy year
+            // of 1970/71 in order to be compared on the same x axis. Note
+            // that in JavaScript, months start at 0 for January, 1 for February etc.
+            series: [{
+                name: "Last 3 Months",
+                data: last3month
+            }],
+
+            responsive: {
+                rules: [{
+                    condition: {
+                        maxWidth: 500
+                    },
+                    chartOptions: {
+                        plotOptions: {
+                            series: {
+                                marker: {
+                                    radius: 2.5
+                                }
+                            }
+                        }
+                    }
+                }]
+            }
+        });
+    </script>
 }

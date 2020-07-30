@@ -53,6 +53,7 @@ namespace MTProvider.Controllers
                 foreach(MTSymbols symbol in db.MTSymbols.ToArray())
                 {
                     SymbolsEnable symbolsEnable = new SymbolsEnable();
+                    symbolsEnable.Status = null;
                     symbolsEnable.UserName = mTAccounts.UserName;
                     symbolsEnable.SymbolName = symbol.Name;
                     db.SymbolsEnable.Add(symbolsEnable);
